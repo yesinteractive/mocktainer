@@ -38,11 +38,11 @@ function before($route)
 #   GET        |  /                |  api
 
 
-dispatch('/:uri_param/*', 'api');
-dispatch_post('/:uri_param/*', 'api');
-dispatch_put('/:uri_param/*', 'api');
-dispatch_delete('/:uri_param/*', 'api');
-dispatch_patch('/:uri_param/*', 'api'); 
+dispatch('/:uri_param/:echo/*', 'api');
+dispatch_post('/:uri_param/:echo/*', 'api');
+dispatch_put('/:uri_param/:echo/*', 'api');
+dispatch_delete('/:uri_param/:echo/*', 'api');
+dispatch_patch('/:uri_param/:echo/*', 'api');
 
 ##############################################################################
 #  run after function

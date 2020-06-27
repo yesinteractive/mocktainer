@@ -77,7 +77,7 @@ function api() {
 */
 
 function mockdata($file) {
-
+    $results = array();
     if (isset($_REQUEST['n'])) {
         $num = $_REQUEST['n'];
       if ($num > 250){
@@ -109,6 +109,27 @@ function mockdata($file) {
 
         array_push($output, $csvData);
 
+    }
+
+    $headers = getallheaders();
+
+    if((!empty(params('echo')))&& (params('echo')=="echo")){
+        $request = ["Request"=>["Headers"=>$headers,
+            "Method"=>$_SERVER['REQUEST_METHOD'],
+            "Origin"=>$_SERVER['REMOTE_ADDR'],
+            "URI"=>(option('behind_proxy') == TRUE || getenv("DADJOKES_BEHIND_PROXY") == "TRUE" ? $_REQUEST['uri'] : preg_replace('/\?.*/', '', $_SERVER['REQUEST_URI'])),
+            "Arguments"=>$_REQUEST,
+            "Data"=>file_get_contents('php://input'),
+            "URL"=>(isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://"
+                . (option('behind_proxy') == TRUE || getenv("DADJOKES_BEHIND_PROXY") == "TRUE" ? $headers['X-Forwarded-Host'].$_REQUEST['uri']: "$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]" ),
+
+        ]];
+        status(202); //returns HTTP status code of 202
+        $output = ["Results"=>$output];
+        return array_merge($output,$request);
+    } else{
+        $output = ["Results"=>$output];
+        return $output;
     }
 
     return $output;
