@@ -1,1 +1,37 @@
-coming soon
+# mocktainer service yaml configuration for kubernetes
+# exposes NodePort Service with auto assigned nodePort
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mocktainer
+  labels:
+    app: mocktainer
+spec:
+  type: NodePort
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80
+  selector:
+    app: mocktainer
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mocktainer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mocktainer
+  template:
+    metadata:
+      labels:
+        app: mocktainer
+    spec:
+      containers:
+        - image: docker.io/yesinteractive/mocktainer
+          name: mocktainer
+          ports:
+            - containerPort: 80

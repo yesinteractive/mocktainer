@@ -1,1 +1,65 @@
-coming soon
+# yaml configuration for kong for kubernetes
+# creates ingress rule /mocktainer for mocktainer service
+# applies an example rate limit policy using Kong's KongPlugin CRD
+# learn about the Kong Ingress Controller at https://github.com/Kong/kubernetes-ingress-controller
+# usage: kubectl apply -f https://tinyurl.com/mocktainer
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mocktainer
+  labels:
+    app: mocktainer
+spec:
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80
+  selector:
+    app: mocktainer
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mocktainer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mocktainer
+  template:
+    metadata:
+      labels:
+        app: mocktainer
+    spec:
+      containers:
+        - image: docker.io/yesinteractive/mocktainer
+          name: mocktainer
+          ports:
+            - containerPort: 80
+---
+kind: KongPlugin
+apiVersion: configuration.konghq.com/v1
+metadata:
+  name: ratelimit-mocktainer
+config:
+  minute: 60
+  limit_by: ip
+  policy: local
+plugin: rate-limiting
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: mocktainer-route
+  annotations:
+    plugins.konghq.com: ratelimit-mocktainer
+    konghq.com/strip-path: "true"
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /mocktainer
+            backend:
+              serviceName: mocktainer
+              servicePort: 80
