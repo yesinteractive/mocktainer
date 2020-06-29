@@ -1,4 +1,5 @@
 # Mocktainer.io #
+![alt text](https://raw.githubusercontent.com/yesinteractive/mocktainer/master/public/banner-mocktainer.png "Mocktainer mocking microservice")
 
 [![Docker Pulls](https://img.shields.io/docker/pulls/yesinteractive/mocktainer?style=for-the-badge)](https://hub.docker.com/r/yesinteractive/mocktainer) 
 [![GitHub stars](https://img.shields.io/github/stars/yesinteractive/mocktainer?style=for-the-badge)](https://github.com/yesinteractive/dad-jokes_microservice) 
@@ -20,7 +21,7 @@ Access [http://mocktainer.io](http://mocktainer.io) to try the free hosted servi
 ##### Endpoints:
  * `/` Root returns help and instructions
  * `/accounts` Returns mock bank accounts
- * `/custoners` Returns mock customers
+ * `/customers` Returns mock customers
  * `/employees` Returns mock employees
  * `/inventory` Returns mock product inventory
  * `/orders` Returns mock orders

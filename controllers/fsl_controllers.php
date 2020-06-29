@@ -58,6 +58,7 @@ function api() {
         // status(202); //returns HTTP status code of 202
         status(200); //returns HTTP status code of 202
         return json($arr,JSON_UNESCAPED_SLASHES);
+        
     }
     else {
         $arr = array(
