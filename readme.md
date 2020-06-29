@@ -75,4 +75,12 @@ FROM yesinteractive/mocktainer
 RUN echo <your commands here>
 ```
 
+## Adding New Endpoints ##
 
+Adding a new endpoint is as simple as adding a new CSV file in the [controllers](https://github.com/yesinteractive/mocktainer/tree/master/controllers) directory.
+The name of the csv will be the dynamic endpoint. The first row must be column header names and 
+there is no limit to the amount of columns. See examples in the controllers directory.
+
+## Contributing ##
+
+If you have an endpoint to share, please add your submission via a [pull request](https://github.com/yesinteractive/mocktainer/pulls).

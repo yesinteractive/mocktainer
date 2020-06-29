@@ -19,28 +19,10 @@ function process_time() {
 function api() {
 
     status(200);
-    if ((!empty(params('uri_param'))) && (params('uri_param') == "customers")) {
-        return json(mockdata("customers.csv") , JSON_UNESCAPED_SLASHES);
+    if ((!empty(params('uri_param'))) && (file_exists("controllers/".params('uri_param').".csv"))) {
+        return json(mockdata(params('uri_param').".csv") , JSON_UNESCAPED_SLASHES);
     }
-    else if ((!empty(params('uri_param'))) && (params('uri_param') == "portfolio")) {
-        return json(mockdata("portfolio.csv") , JSON_UNESCAPED_SLASHES);
-    }
-    else if ((!empty(params('uri_param'))) && (params('uri_param') == "orders")) {
-        return json(mockdata("orders.csv") , JSON_UNESCAPED_SLASHES);
-    }  
-    else if ((!empty(params('uri_param'))) && (params('uri_param') == "inventory")) {
-        return json(mockdata("inventory.csv") , JSON_UNESCAPED_SLASHES);
-    }  
-    else if ((!empty(params('uri_param'))) && (params('uri_param') == "accounts")) {
-        return json(mockdata("bank_accounts.csv") , JSON_UNESCAPED_SLASHES);
-    }  
-    else if ((!empty(params('uri_param'))) && (params('uri_param') == "trades")) {
-        return json(mockdata("trades.csv") , JSON_UNESCAPED_SLASHES);
-    }
-    else if ((!empty(params('uri_param'))) && (params('uri_param') == "employees")) {
-        return json(mockdata("employees.csv") , JSON_UNESCAPED_SLASHES);
-    }
-      else if ((empty(params('uri_param')))) {
+     else if ((empty(params('uri_param')))) {
                 $arr = array(
             'Welcome to Mocktainer.io' => "Mock various api responses accross various endpoints spanning various verticals and applications",
             "Git Hub" => "https://github.com/yesinteractive/mocktainer",
@@ -51,8 +33,10 @@ function api() {
                                           "/orders"=>"Returns mock product orders",
                                           "/portfolio"=>"Returns mock investment portfolio",
                                           "/trades"=>"Returns list of mock brockerage trades",]     ,
-                          "Records" => "You may specify number of records (up to 250) to return by specifying ?n=<number> in query string. otherwise 10 records returned."
-                           ]
+                          "Records" => "You may specify number of records (up to 250) to return by specifying ?n=<number> in query string. otherwise 10 records returned.",
+                  "Echo Service" => "Add a /echo in the URI after any of the endpoints supported to echo back in the incoming request information."
+
+              ]
               
         );
         // status(202); //returns HTTP status code of 202
