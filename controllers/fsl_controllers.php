@@ -19,10 +19,13 @@ function process_time() {
 function api() {
 
     status(200);
-    if ((!empty(params('uri_param'))) && (file_exists("controllers/".params('uri_param').".csv"))) {
+
+    if ((!empty(params('uri_param'))) && (file_exists(__DIR__ ."/../endpoints/".params('uri_param').".csv"))) {
         return json(mockdata(params('uri_param').".csv") , JSON_UNESCAPED_SLASHES);
     }
      else if ((empty(params('uri_param')))) {
+       return html("test");
+       //if json request
                 $arr = array(
             'Welcome to Mocktainer.io' => "Mock various api responses accross various endpoints spanning various verticals and applications",
             "Git Hub" => "https://github.com/yesinteractive/mocktainer",
@@ -80,7 +83,7 @@ function mockdata($file) {
         $num = 10;
     }
 
-    $f_contents = file("controllers/$file");
+    $f_contents = file(__DIR__ ."/../endpoints/". $file);
     $headers = explode(",", $f_contents[0]);
 
     $output = array();

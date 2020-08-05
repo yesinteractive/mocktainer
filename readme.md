@@ -19,17 +19,19 @@ Access [http://mocktainer.io](http://mocktainer.io) to try the free hosted servi
 ## Usage ##
 
 ##### Endpoints:
- * `/` Root returns help and instructions
- * `/accounts` Returns mock bank accounts
- * `/customers` Returns mock customers
- * `/employees` Returns mock employees
- * `/inventory` Returns mock product inventory
- * `/orders` Returns mock orders
- * `/portfolio` Returns mock investment portfolio
- * `/trades` Returns mock trades
+ * `/` Root returns help and instructions in HTML format
+ * `/accounts` Returns mock bank accounts in JSON
+ * `/customers` Returns mock customers in JSON
+ * `/employees` Returns mock employees in JSON
+ * `/inventory` Returns mock product inventory in JSON
+ * `/orders` Returns mock orders in JSON
+ * `/portfolio` Returns mock investment portfolio in JSON
+ * `/trades` Returns mock trades in JSON
  
  **Echo URI** : Simply add `/echo` to the end of any endpoint above to echo back
  the original request with payload and request headers. Helpful for troublshooting.
+ 
+ **Adding New Endpoints** : See instructions below.
 
 **Methods Supported** : `GET` `PUT` `POST` `DELETE` `PATCH`
 
@@ -77,7 +79,7 @@ RUN echo <your commands here>
 
 ## Adding New Endpoints ##
 
-Adding a new endpoint is as simple as adding a new CSV file in the [controllers](https://github.com/yesinteractive/mocktainer/tree/master/controllers) directory.
+Adding a new endpoint is as simple as adding a new CSV file in the [endpoints](https://github.com/yesinteractive/mocktainer/tree/master/endpoints) directory.
 The name of the csv will be the dynamic endpoint. The first row must be column header names and 
 there is no limit to the amount of columns. See examples in the controllers directory.
 
