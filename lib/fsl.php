@@ -1137,7 +1137,7 @@ function request_uri($env = null)
   {
     $uri = '/' . $uri; # add a leading slash
   }
-  //return rawurldecode($uri);
+  return rawurldecode($uri);
   // XSS Protection  - FSL
   
     $xss = new xss_filter();

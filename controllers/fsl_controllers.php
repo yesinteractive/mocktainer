@@ -19,7 +19,7 @@ function process_time() {
 function api() {
 
     status(200);
-
+ 
     if ((!empty(params('uri_param'))) && (file_exists(__DIR__ ."/../endpoints/".params('uri_param').".csv"))) {
         return json(mockdata(params('uri_param').".csv") , JSON_UNESCAPED_SLASHES);
     }

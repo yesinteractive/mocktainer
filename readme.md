@@ -26,6 +26,7 @@ Access [http://mocktainer.io](http://mocktainer.io) to try the free hosted servi
  * `/inventory` Returns mock product inventory in JSON
  * `/orders` Returns mock orders in JSON
  * `/portfolio` Returns mock investment portfolio in JSON
+ * `/prescriptions` Returns mock drug prescriptions list in JSON
  * `/trades` Returns mock trades in JSON
  
  **Echo URI** : Simply add `/echo` to the end of any endpoint above to echo back

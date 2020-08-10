@@ -47,6 +47,9 @@
                 <li>
                     <p><code>/portfolio</code> Returns mock investment portfolio in JSON</p>
                 </li>
+                              <li>
+                    <p><code>/prescriptions</code> Returns mock drug prescriptions in JSON</p>
+                </li>
                 <li>
                     <p><code>/trades</code> Returns mock trades</p>
                    
