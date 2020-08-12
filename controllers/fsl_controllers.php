@@ -90,7 +90,8 @@ function mockdata($file) {
 
     for ($x = 0;$x < $num;$x++) {
         $line = $f_contents[rand(0, count($f_contents) - 1) ];
-        $line = explode(",", $line);
+        $line = str_getcsv($line, ",", '"');
+        //$line = explode(",", $line);
         for ($y = 0;$y < count($headers);$y++) {
             $csvData[trim($headers[$y]) ] = trim($line[$y]);
         }
