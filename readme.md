@@ -65,10 +65,13 @@ Docker image is Alpine 3.11 based running PHP 7.3 on Apache. The container expos
 ```
 docker pull yesinteractive/mocktainer
 ```
-Typical basic usage:
+Typical basic usage (below example exposes mocktainer on host ports 8100 and 8143):
 
 ```
-docker run -it yesinteractive/mocktainer
+$ docker run -d \
+  -p 8100:80 \
+  -p 8143:443 \
+  yesinteractive/mocktainer
 ```
 
 Typical usage in Dockerfile:
