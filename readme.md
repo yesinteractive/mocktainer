@@ -14,7 +14,7 @@ Mocktainer.io is a micro service that mocks micro service API's
 
 ## Hosted Service / Demo ##
 
-Access [http://mocktainer.io](http://mocktainer.io) to try the free hosted service.
+Access [http://notno.io/mocktainer](http://notno.io/mocktainer) to try the free hosted service.
 
 ## Usage ##
 

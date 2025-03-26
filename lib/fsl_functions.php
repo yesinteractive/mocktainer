@@ -5,6 +5,23 @@
  *
  */
 
+// Add strict typing declaration at the top
+declare(strict_types=1);
+
+// Add this at the beginning of the file after declare(strict_types=1);
+function fsl_init_secure_session(): void {
+    ini_set('session.cookie_httponly', '1');
+    ini_set('session.cookie_secure', '1');
+    ini_set('session.cookie_samesite', 'Strict');
+    ini_set('session.use_strict_mode', '1');
+    ini_set('session.use_only_cookies', '1');
+    
+    session_start([
+        'cookie_lifetime' => 0,
+        'gc_maxlifetime' => 3600,
+        'use_strict_mode' => true
+    ]);
+}
 
 /* 
  *
@@ -18,29 +35,39 @@
  *     key specified with option('global_encryption_key', 'setyourkeyhere') config
  * @return (string)
  */
-function fsl_encrypt($string, $key = NULL){
+function fsl_encrypt(string $string, ?string $key = null): string {
+    $encryption_key = $key ?? option('global_encryption_key');
+    
+    // Validate encryption key
+    if ($encryption_key === 'setyourkeyhere') {
+        throw new RuntimeException(
+            'Please set a secure encryption key in config/fsl_config.php. ' .
+            'You can generate one by running: php -r "echo base64_encode(random_bytes(32));"'
+        );
+    }
+    
+    if (empty($encryption_key)) {
+        throw new RuntimeException('Encryption key not set in config/fsl_config.php');
+    }
 
-  //set key to default key if no key passed to function  
-  $encryption_key = (empty($key)) ? option('fsl_global_encryption_key') : $key;
-
-  // Generate an initialization vector
-  // This *MUST* be available for decryption as well
-  $iv = openssl_random_pseudo_bytes(openssl_cipher_iv_length('aes-256-cbc'));
-
-  // Create some data to encrypt
-  
-  // Encrypt $data using aes-256-cbc cipher with the given encryption key and
-  // our initialization vector. The 0 gives us the default options, but can
-  // be changed to OPENSSL_RAW_DATA or OPENSSL_ZERO_PADDING
-  $encrypted = openssl_encrypt($string, 'aes-256-cbc', $encryption_key, 0, $iv);
-
-  // If we lose the $iv variable, we can't decrypt this, so:
-  // - $encrypted is already base64-encoded from openssl_encrypt
-  // - Append a separator that we know won't exist in base64, ":"
-  // - And then append a base64-encoded $iv
-  $encrypted = $encrypted . ':' . base64_encode($iv);
-
-  return $encrypted;
+    // Generate an initialization vector
+    $iv = openssl_random_pseudo_bytes(openssl_cipher_iv_length('aes-256-cbc'));
+    
+    // Encrypt using the original method for compatibility
+    $encrypted = openssl_encrypt(
+        $string,
+        'aes-256-cbc',
+        $encryption_key,
+        0,
+        $iv
+    );
+    
+    if ($encrypted === false) {
+        throw new RuntimeException('Encryption failed - please check your encryption key');
+    }
+    
+    // Return in the original format with : separator
+    return $encrypted . ':' . base64_encode($iv);
 }
 
 /*
@@ -54,18 +81,44 @@ function fsl_encrypt($string, $key = NULL){
  *     key specified with option('global_encryption_key', 'setyourkeyhere') config
  * @return (string)
  */
-function fsl_decrypt($string, $key = NULL){
-
-  //set key to default key if no key passed to function  
- $encryption_key = (empty($key)) ? option('fsl_global_encryption_key') : $key;
-
-  // To decrypt, separate the encrypted data from the initialization vector ($iv).
-  $parts = explode(':', $string);
-
-  // Don't forget to base64-decode the $iv before feeding it back to
-  //openssl_decrypt
-  $decrypted = openssl_decrypt($parts[0], 'aes-256-cbc', $encryption_key, 0, base64_decode($parts[1]));
-  return $decrypted;
+function fsl_decrypt(string $string, ?string $key = null): string {
+    $encryption_key = $key ?? option('global_encryption_key');
+    
+    // Validate encryption key
+    if ($encryption_key === 'setyourkeyhere') {
+        throw new RuntimeException(
+            'Please set a secure encryption key in config/fsl_config.php. ' .
+            'You can generate one by running: php -r "echo base64_encode(random_bytes(32));"'
+        );
+    }
+    
+    if (empty($encryption_key)) {
+        throw new RuntimeException('Encryption key not set in config/fsl_config.php');
+    }
+    
+    // Split using the original : separator
+    $parts = explode(':', $string);
+    if (count($parts) !== 2) {
+        throw new RuntimeException('Invalid encrypted data format');
+    }
+    
+    $decrypted = openssl_decrypt(
+        $parts[0],
+        'aes-256-cbc',
+        $encryption_key,
+        0,
+        base64_decode($parts[1])
+    );
+    
+    if ($decrypted === false) {
+        throw new RuntimeException(
+            'Decryption failed - this usually means either:' . PHP_EOL .
+            '1. The encryption key has changed since the data was encrypted' . PHP_EOL .
+            '2. The encrypted data has been modified or corrupted'
+        );
+    }
+    
+    return $decrypted;
 }
 
 /*
@@ -78,7 +131,7 @@ function fsl_decrypt($string, $key = NULL){
  *     key specified with option('global_encryption_key', 'setyourkeyhere') config
  * @return (string)
  */
-function fsl_scrub($string){
+function fsl_scrub(string $string): string {
         
         $xss = new xss_filter();
         $string = $xss->filter_it($string); 
@@ -95,11 +148,20 @@ function fsl_scrub($string){
  * @timeoue (string) optional timeout of session
  * @return true
  */ 
-function fsl_session_set($name,$value,$timeout = NULL){
-        $_SESSION[$name]  = fsl_encrypt($value);
-				if(!empty($timeout))  $_SESSION[$name.'_timeout'] = $timeout + time();
-		
-        return true;
+function fsl_session_set(string $name, string $value, ?int $timeout = null): bool {
+    // Regenerate session ID periodically for security
+    if (!isset($_SESSION['last_regeneration']) || 
+        time() - $_SESSION['last_regeneration'] > 300) {
+        session_regenerate_id(true);
+        $_SESSION['last_regeneration'] = time();
+    }
+    
+    $_SESSION[$name] = fsl_encrypt($value);
+    if ($timeout !== null) {
+        $_SESSION[$name . '_timeout'] = time() + $timeout;
+    }
+    
+    return true;
 }
 
 /*
@@ -112,7 +174,7 @@ function fsl_session_set($name,$value,$timeout = NULL){
  * @timeoue (string) optional timeout of session
  * @return true
  */ 
-function fsl_session_check($name,$value = NULL,$timeout = NULL){
+function fsl_session_check(string $name, ?string $value = null, ?int $timeout = null): mixed {
     if ((empty($_SESSION[$name]  )) || ( (!empty( $_SESSION[$name.'_timeout'])) &&  (time() >  $_SESSION[$name.'_timeout'])) )
     {  
       fsl_session_kill($name); //run kill session command
@@ -135,11 +197,24 @@ function fsl_session_check($name,$value = NULL,$timeout = NULL){
  * returns true
  */ 
 
-function fsl_session_kill($name){
-      unset($_SESSION[''.$name.'']);
-      unset($_SESSION[''.$name.'_timeout']);
-      session_destroy();
-      return true;
+function fsl_session_kill(string $name): bool {
+    // More thorough session cleanup
+    unset($_SESSION[$name], $_SESSION[$name . '_timeout']);
+    
+    // Only destroy the whole session if explicitly requested
+    if ($name === '*') {
+        $_SESSION = array();
+        if (ini_get('session.use_cookies')) {
+            $params = session_get_cookie_params();
+            setcookie(session_name(), '', time() - 42000,
+                $params['path'], $params['domain'],
+                $params['secure'], $params['httponly']
+            );
+        }
+        session_destroy();
+    }
+    
+    return true;
 }
 
 /* 
@@ -174,6 +249,28 @@ function fsl_jwt_decode($token,$key)
   return JWT::decode($token, $key);
 }
 
+/* 
+ *
+ * get_tiny_url
+ *
+ * Generates a Tiny URL 
+ *
+ * @url (string) url to be shortened
+ * @return (string)  
+ */
+function fsl_get_tiny_url($url)  {  
+	$ch = curl_init();  
+	$timeout = 5;  
+	curl_setopt($ch,CURLOPT_URL,'https://tinyurl.com/api-create.php?url='.$url);  
+	curl_setopt($ch,CURLOPT_RETURNTRANSFER,1);  
+	curl_setopt($ch,CURLOPT_CONNECTTIMEOUT,$timeout);  
+	$data = curl_exec($ch);  
+	curl_close($ch);
+  
+	return preg_replace("/^http:/i", "https:", $data);  
+}
+ 
+
 /*
  * fsl_gauth_check
  *
@@ -185,7 +282,7 @@ function fsl_jwt_decode($token,$key)
  * @return (string)
  */
 
-function fsl_gauth_check(){
+function fsl_gauth_check(): bool {
     if ($_SESSION['glogin'] == 1)
     {
       return true;
@@ -299,7 +396,137 @@ function fsl_gauth_getauthurl()
  * @return (string)
  */
 
+/* 
+ *
+ * fsl_hash_create
+ *
+ * creates a one way sha256 hash. Good for storing passwords, keys, and other data
+ * elements where you do not need to unencrypt
+ *
+ * @string (string) data to be hashed
+ * @return (string)
+ */
+function fsl_hash_create($string)
+{
+  return Password::create_hash($string);
+}
 
+/* 
+ *
+ * fsl_hash_validate
+ *
+ * verify that a string matches a stored hashed version of the string
+ *
+ * @string (string) data to be validated
+ * @good_hash (string) hash to be compared against
+ * @return (boolean)
+ */
+function fsl_hash_validate($string,$good_hash)
+{
+  return Password::validate_password($string, $good_hash);
+}
+
+
+/* 
+ *
+ * fsl_curl
+ *
+ * make an external http call. helpful when calling external api's
+ *
+ * @url: url of api
+ * @method: action of request. Options include GET POST PUT DELETE
+ * @datatype: expected data either XML or JSON or FORM supported. Otherwise defaults to *
+ * @urlparams: url parameters (query string)
+ * @postdata: array of data to submit
+ * @authtype: authentication if needed BASIC or TOKEN (bearer token)
+ * @$authuser: basic auth user
+ * @$authpassword: basic auth password
+ * @$authtoken: bearer token
+ * @$customheader: ARRAY of custom headers
+ * output: return array(http response code, curl info, response);
+ */
+
+function fsl_curl(
+    string $url,
+    string $method = "GET",
+    ?string $datatype = null,
+    ?string $urlparams = null,
+    mixed $postdata = null,
+    ?string $authtype = null,
+    ?string $authuser = null,
+    ?string $authpassword = null,
+    ?string $authtoken = null,
+    ?array $customheader = null
+): array {
+    if (!filter_var($url, FILTER_VALIDATE_URL)) {
+        throw new InvalidArgumentException('Invalid URL provided');
+    }
+
+    $ch = curl_init();
+    
+    // Secure defaults
+    curl_setopt_array($ch, [
+        CURLOPT_URL => $urlparams ? $url . '?' . $urlparams : $url,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_SSL_VERIFYPEER => true,  // Always verify SSL certificates
+        CURLOPT_SSL_VERIFYHOST => 2,     // Strict SSL checking
+        CURLOPT_TIMEOUT => 30,           // Reasonable timeout
+        CURLOPT_PROTOCOLS => CURLPROTO_HTTPS | CURLPROTO_HTTP,
+        CURLOPT_FOLLOWLOCATION => false, // Don't follow redirects by default
+    ]);
+    
+    //set user agent
+    $headers = array('User-Agent: Fresh Squeezed Limonade (https://github.com/yesinteractive/fsl)');
+
+    //data type
+    if ($datatype == "XML") {
+        array_push($headers,'Content-Type: application/xml');    
+    }else if ($datatype == "JSON") {
+        array_push($headers,'Content-Type: application/json');  
+    }  else if ($datatype == "FORM") {
+        array_push($headers,'Content-Type: application/x-www-form-urlencoded');
+    } else {
+        array_push($headers,'Content-Type: */*');      
+    }
+
+    //method
+    if ($method == "POST") {
+        //need to post the values? 
+        curl_setopt($ch, CURLOPT_POST, true);
+        //fields which will be posted. 
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $postdata);
+    } else if ($method == "PUT") {
+        curl_setopt($ch, CURLOPT_PUT, true);
+    } else if ($method == "DELETE") {
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "DELETE");
+    } else{
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "GET");
+    }
+    
+    //auth
+    if ($authtype == "BASIC") {
+        curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+        curl_setopt($ch, CURLOPT_USERPWD, "$authuser:$authpassword");
+    } else if ($authtype == "TOKEN") {
+        array_push($headers,'Authorization: Bearer ' . $authtoken);
+    } else{
+        //no auth
+    }
+    
+    //merge headeer arrays if customheader set and set headers 
+    if ($customheader == NULL){
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers); 
+    } else {
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array_merge($headers,$customheader)); 
+    }               
+                
+    $output = curl_exec($ch);
+    $info = curl_getinfo($ch);
+    $code = $info['http_code'];
+    curl_close($ch);
+
+    return $ret = array($code, $info, $output);
+}
 
 
 ?>
