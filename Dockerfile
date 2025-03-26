@@ -1,33 +1,45 @@
-FROM alpine:3.11
-MAINTAINER YesInteractive- http://yes-interactive.com
+FROM alpine:latest
+MAINTAINER yes!nteractvie - http://yes-interactive.com
 
 # Install modules and updates
 RUN apk update \
     && apk --no-cache add \
-        openssl=="1.1.1g-r0" \
-        apache2=="2.4.46-r0" \
+        openssl \
+        apache2 \
         apache2-ssl \
         apache2-http2 \
-     	unzip \
+        git \
+        unzip \
     # Install PHP from community
-    && apk --no-cache --repository http://dl-4.alpinelinux.org/alpine/v3.11/community/ add \
-        php7=="7.3.18-r0" \
+    && apk --no-cache --repository http://dl-cdn.alpinelinux.org/alpine/latest-stable/community/ add \
+        php7 \
         php7-apache2 \
+        php7-bcmath \
+        php7-bz2 \
+        php7-calendar \
         php7-common \
         php7-ctype \
         php7-curl \
+        php7-dom \
         php7-json \
         php7-mbstring \
+        php7-mcrypt \
         php7-memcached \
+        php7-mysqlnd \
         php7-opcache \
         php7-openssl \
+        php7-pdo \
+        php7-pdo_mysql \
+        php7-pdo_sqlite \
+        php7-phar \
         php7-session \
         php7-sockets \
+        php7-xml \
+        php7-xmlreader \
     && rm /var/cache/apk/* \
-    
     # Run required config / setup for apache
     # Ensure apache can create pid file
-    #&& mkdir /run/apache2 \
+    && mkdir /run/apache2 \
     # Fix group
     && sed -i -e 's/Group apache/Group www-data/g' /etc/apache2/httpd.conf \
     # Fix ssl module
@@ -44,7 +56,7 @@ RUN apk update \
     && echo '' >> /etc/apache2/httpd.conf \
     && echo 'IncludeOptional /etc/apache2/conf.d/custom/*.conf' >> /etc/apache2/httpd.conf \
     # Fix modules
-    && sed -i 's#AllowOverride None#AllowOverride All#' /etc/apache2/httpd.conf \	
+    && sed -i 's#AllowOverride None#AllowOverride All#' /etc/apache2/httpd.conf \
     && sed -i -e 's/ServerRoot \/var\/www/ServerRoot \/etc\/apache2/g' /etc/apache2/httpd.conf \
     && mv /var/www/modules /etc/apache2/modules \
     && mv /var/www/run /etc/apache2/run \
@@ -55,8 +67,8 @@ RUN apk update \
     && wget https://github.com/yesinteractive/mocktainer/archive/master.zip -P /app  \
     && unzip /app/master.zip -d /app \
     && rm -rf /app/master.zip \
-    && cp -r /app/mocktainer-master/. /app \
-    && rm -rf /app/mocktainer-master
+    && cp -r /app/fsl-master/. /app \
+    && rm -rf /app/fsl-master
 
 WORKDIR /app
 

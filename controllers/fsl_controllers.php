@@ -24,11 +24,12 @@ function api() {
         return json(mockdata(params('uri_param').".csv") , JSON_UNESCAPED_SLASHES);
     }
      else if ((empty(params('uri_param')))) {
-       return html("test");
-       //if json request
+     //  return html("test"); uncomment to return html by default on root request rather than json
+
                 $arr = array(
-            'Welcome to Mocktainer.io' => "Mock various api responses accross various endpoints spanning various verticals and applications",
+            'Welcome to Mocktainer' => "Mock various api responses accross various endpoints spanning various verticals and applications",
             "Git Hub" => "https://github.com/yesinteractive/mocktainer",
+            "Version" => "v".option('app_version'),
               'Usage' => ["Endpoints" => ["/accounts"=>"Returns mock bank accounts ",
                                           "/customers"=>"Returns mock customer list with customer details.",
                                           "/employees"=>"Returns mock employees .",
@@ -102,18 +103,24 @@ function mockdata($file) {
 
     $headers = getallheaders();
 
+    if (option('behind_proxy') == TRUE || getenv("APP_BEHIND_PROXY") == "TRUE") {
+        if (isset($headers['X-Forwarded-Host'])) {
+            $headers['Host'] = $headers['X-Forwarded-Host'];
+        }
+    }
+
     if((!empty(params('echo')))&& (params('echo')=="echo")){
         $request = ["Request"=>["Headers"=>$headers,
-            "Method"=>$_SERVER['REQUEST_METHOD'],
-            "Origin"=>$_SERVER['REMOTE_ADDR'],
-            "URI"=>(option('behind_proxy') == TRUE || getenv("DADJOKES_BEHIND_PROXY") == "TRUE" ? $_REQUEST['uri'] : preg_replace('/\?.*/', '', $_SERVER['REQUEST_URI'])),
-            "Arguments"=>$_REQUEST,
-            "Data"=>file_get_contents('php://input'),
-            "URL"=>(isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://"
-                . (option('behind_proxy') == TRUE || getenv("DADJOKES_BEHIND_PROXY") == "TRUE" ? $headers['X-Forwarded-Host'].$_REQUEST['uri']: "$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]" ),
-
-        ]];
-        status(202); //returns HTTP status code of 202
+        "Method"=>$_SERVER['REQUEST_METHOD'],
+        "Origin"=>$_SERVER['REMOTE_ADDR'],
+        "URI"=>(option('behind_proxy') == TRUE || getenv("APP_BEHIND_PROXY") == "TRUE" ? $_REQUEST['uri'] : preg_replace('/\?.*/', '', $_SERVER['REQUEST_URI'])),
+        "HOST"=>(option('behind_proxy') == TRUE || getenv("APP_BEHIND_PROXY") == "TRUE" ? ($headers['X-Forwarded-Host'] ?? $_SERVER['HTTP_HOST']) : $_SERVER['HTTP_HOST']),
+        "Arguments"=>$_REQUEST,
+        "Data"=>file_get_contents('php://input'),
+        "URL"=>(isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://"
+            . (option('behind_proxy') == TRUE || getenv("APP_BEHIND_PROXY") == "TRUE" ? ($headers['X-Forwarded-Host'] ?? $_SERVER['HTTP_HOST']).$_REQUEST['uri']: "$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]" ),
+    ]];
+        status(200); //returns HTTP status code of 202
         $output = ["Results"=>$output];
         return array_merge($output,$request);
     } else{

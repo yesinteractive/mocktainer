@@ -1,4 +1,4 @@
-# Mocktainer.io #
+# Mocktainer #
 ![alt text](https://raw.githubusercontent.com/yesinteractive/mocktainer/master/public/banner-mocktainer.png "Mocktainer mocking microservice")
 
 [![Docker Pulls](https://img.shields.io/docker/pulls/yesinteractive/mocktainer?style=for-the-badge)](https://hub.docker.com/r/yesinteractive/mocktainer) 
@@ -8,7 +8,7 @@
 
 
 
-Mocktainer.io is a micro service that mocks micro service API's
+Mocktainer is a micro service that mocks micro service API's
  with fake data accross multiple endpoints representing various
  verticals and functions.
 
@@ -58,6 +58,15 @@ Access [http://notno.io/mocktainer](http://notno.io/mocktainer) to try the free 
 ### Deployment Examples ###
 
 See usage examples for Kubernetes, Kong for Kubernetes Ingress Controller, and docker-compose in the [examples directory folder.](https://github.com/yesinteractive/mocktainer/blob/master/examples)
+
+
+### BEHIND REVERSE PROXY CONFIGURATION ###
+
+If behind an API gateway or reverse proxy, you may wish to have only the URI of the original request
+echoed back and not the URI of the upstream proxy target. To do this you may add the docker environment
+variable `APP_BEHIND_PROXY=TRUE` to your configuration or set the global `behind_proxy`configuration
+to true in the `config/fsl_config.php` file.
+
 
 ### With Docker ###
 
