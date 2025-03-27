@@ -3,7 +3,7 @@
 ---
 version: '3'
 services:
-  dadjokes:
+  mocktainer:
     image: docker.io/yesinteractive/mocktainer
     container_name: mocktainer
     restart: always
